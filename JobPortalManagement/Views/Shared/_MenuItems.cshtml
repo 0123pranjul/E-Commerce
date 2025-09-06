@@ -1,0 +1,25 @@
+﻿@model List<JobPortalManagement.Models.DTO.MenuItemViewModel>
+
+@foreach (var menu in Model)
+{
+    <div class="menu-item">
+        @if (menu.Children != null && menu.Children.Any())
+        {
+            <a href="#" class="menu-link" data-bs-toggle="collapse" data-bs-target="#menu-@menu.MenuId" onclick="toggleMenu(this)">
+                <i class="@menu.Icon"></i>
+                <span>@menu.MenuName</span>
+                <i class="fas fa-chevron-down menu-toggle"></i>
+            </a>
+            <div class="collapse submenu" id="menu-@menu.MenuId">
+                @await Html.PartialAsync("_MenuItems", menu.Children)
+            </div>
+        }
+        else
+        {
+            <a class="menu-link" asp-controller="@menu.ControllerName" asp-action="@menu.ActionName">
+                <i class="@menu.Icon"></i>
+                <span>@menu.MenuName</span>
+            </a>
+        }
+    </div>
+}

@@ -1,0 +1,155 @@
+﻿@model JobPortalManagement.Models.DTO.AssignMenuPermissionViewModel
+
+@{
+    ViewData["Title"] = "Assign Menu Permissions";
+
+    void RenderMenu(List<JobPortalManagement.Models.DTO.MenuPermissionDto> menus, string parentPrefix, int level = 0)
+    {
+        for (int i = 0; i < menus.Count; i++)
+        {
+            var menu = menus[i];
+            var fieldPrefix = $"{parentPrefix}[{i}]";
+            var hasChildren = menu.Children != null && menu.Children.Any();
+            var rowId = $"menu-row-{menu.MenuId}";
+            var toggleClass = hasChildren ? "toggle-children" : "";
+            var indent = level * 20;
+
+            <tr class="menu-row menu-level-@level" id="@rowId">
+                <td style="padding-left:@(indent)px">
+                    @if (hasChildren)
+                    {
+                        <span class="toggle-icon @toggleClass" style="cursor:pointer; margin-right:5px;">&#9660;</span>
+                    }
+                    <input type="hidden" name="@($"{fieldPrefix}.MenuId")" value="@menu.MenuId" />
+                    <input type="hidden" name="@($"{fieldPrefix}.MenuName")" value="@menu.MenuName" />
+                    @menu.MenuName
+                </td>
+                <td>
+                    <input type="checkbox" name="@($"{fieldPrefix}.CanRead")" value="true" @(menu.CanRead ? "checked" : "") /> Read
+                    <input type="checkbox" name="@($"{fieldPrefix}.CanCreate")" value="true" @(menu.CanCreate ? "checked" : "") /> Create
+                    <input type="checkbox" name="@($"{fieldPrefix}.CanUpdate")" value="true" @(menu.CanUpdate ? "checked" : "") /> Update
+                    <input type="checkbox" name="@($"{fieldPrefix}.CanDelete")" value="true" @(menu.CanDelete ? "checked" : "") /> Delete
+                </td>
+                <td>
+                    <input type="checkbox" class="checkAllRow" />
+                </td>
+            </tr>
+
+            if (hasChildren)
+            {
+                RenderMenu(menu.Children, $"{fieldPrefix}.Children", level + 1);
+            }
+        }
+    }
+}
+
+<div class="container mt-4">
+    <h2>@ViewData["Title"]</h2>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <form method="post" asp-action="MenuAsign">
+                <div class="form-group mb-3">
+                    <label>Select Role</label>
+                    <select id="role" name="SelectedRole" class="form-control" required>
+                        <option value="">--Select Role--</option>
+                        @foreach (var role in Model.Roles)
+                        {
+                            <option value="@role.Value">@role.Text</option>
+                        }
+                    </select>
+                </div>
+
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Menu</th>
+                            <th>Permissions</th>
+                            <th>
+                                <input type="checkbox" id="selectAll" /> All
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            RenderMenu(Model.MenuPermissions, "MenuPermissions", 0);
+                        }
+                    </tbody>
+
+                </table>
+
+                <button type="submit" class="btn btn-success">Save Permissions</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .menu-level-0 {
+        background-color: #f0f8ff;
+        font-weight: bold;
+    }
+
+    .menu-level-1 {
+        background-color: #f9f9f9;
+    }
+
+    .menu-level-2 {
+        background-color: #fcfcfc;
+    }
+
+    .toggle-icon.collapsed::before {
+        content: '\9658';
+    }
+    /* Right arrow */
+    .toggle-icon::before {
+        content: '\9660';
+    }
+    /* Down arrow */
+</style>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(function () {
+            // Toggle children
+            $('.toggle-icon').click(function () {
+                var $icon = $(this);
+                var $row = $icon.closest('tr');
+                var level = $row.data('level') || 0;
+                var $childRows = $row.nextAll('tr').filter(function () {
+                    return $(this).find('input[name$=".MenuId"]').length > 0 && $(this).find('td:first').css('padding-left').replace('px', '') > (level * 20);
+                });
+                $childRows.toggle();
+                $icon.toggleClass('collapsed');
+            });
+
+            // Role change -> AJAX load permissions
+            $('#role').change(function () {
+                var roleId = $(this).val();
+                if (!roleId) return;
+
+                $.get('@Url.Action("GetMenuPermissionsByRole", "Role")', { roleId: roleId }, function (data) {
+                    $('input[type="checkbox"]').prop('checked', false);
+                    data.forEach(function (perm) {
+                        var row = $('input[name$=".MenuId"][value="' + perm.menuId + '"]').closest('tr');
+                        row.find('input[name$=".CanRead"]').prop('checked', perm.canRead);
+                        row.find('input[name$=".CanCreate"]').prop('checked', perm.canCreate);
+                        row.find('input[name$=".CanUpdate"]').prop('checked', perm.canUpdate);
+                        row.find('input[name$=".CanDelete"]').prop('checked', perm.canDelete);
+                    });
+                });
+            });
+
+            // Select all
+            $('#selectAll').change(function () {
+                $('input[type="checkbox"]').not('#selectAll').prop('checked', this.checked);
+            });
+
+            // Row-wise select all
+            $('.checkAllRow').change(function () {
+                $(this).closest('tr').find('input[type="checkbox"]').not(this).prop('checked', this.checked);
+            });
+        });
+    </script>
+}
