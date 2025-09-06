@@ -1,0 +1,372 @@
+﻿@model JobPortalManagement.Models.DTO.RoleManagementVM
+@{
+    ViewData["Title"] = "Role Management";
+}
+
+<!-- Include SweetAlert2 CSS and JS -->
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.min.css" rel="stylesheet">
+
+<div class="container-fluid px-4 py-5">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h1 class="h3 mb-1 text-gray-800 fw-bold">
+                        <i class="fas fa-users-cog me-2 text-primary"></i>Role Management
+                    </h1>
+                    <p class="text-muted mb-0">Manage system roles and permissions</p>
+                </div>
+                <div class="badge bg-light text-primary border px-3 py-2">
+                    <i class="fas fa-list me-1"></i>
+                    @Model.Roles.Count() Roles
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Add/Edit Form Card -->
+        <div class="col-lg-4 col-md-5">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-gradient-primary text-white border-0 py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        <span id="form-title">Add New Role</span>
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form id="roleForm" asp-action="Create" method="post">
+                        <input type="hidden" asp-for="Role.Id" id="roleId" />
+
+                        <div class="mb-4">
+                            <label asp-for="Role.RoleName" class="form-label fw-semibold text-gray-700">
+                                <i class="fas fa-tag me-1"></i>Role Name
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-user-tag text-muted"></i>
+                                </span>
+                                <input asp-for="Role.RoleName"
+                                       class="form-control border-start-0 ps-0"
+                                       placeholder="Enter role name..."
+                                       id="roleName" />
+                            </div>
+                            <span asp-validation-for="Role.RoleName" class="text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-3 fw-semibold" id="saveBtn">
+                                <i class="fas fa-save me-2"></i>Save Role
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary rounded-3" id="cancelBtn" style="display: none;" onclick="resetForm()">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Roles List Card -->
+        <div class="col-lg-8 col-md-7">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-light border-0 py-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h5 class="card-title mb-0 text-gray-800">
+                            <i class="fas fa-list-ul me-2"></i>System Roles
+                        </h5>
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-primary rounded-pill">@Model.Roles.Count() Total</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.Roles.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="border-0 py-3 px-4 fw-semibold text-gray-700">
+                                            <i class="fas fa-user-tag me-2"></i>Role Name
+                                        </th>
+                                        <th class="border-0 py-3 px-4 fw-semibold text-gray-700 text-center" style="width: 200px;">
+                                            <i class="fas fa-cogs me-2"></i>Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var role in Model.Roles)
+                                    {
+                                        <tr class="border-bottom">
+                                            <td class="py-3 px-4 align-middle">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                                                        <i class="fas fa-shield-alt text-primary"></i>
+                                                    </div>
+                                                    <div>
+                                                        <span class="fw-semibold text-gray-800">@role.Name</span>
+                                                        <br>
+                                                        <small class="text-muted">Role ID: @role.Id</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="py-3 px-4 align-middle text-center">
+                                                <div class="btn-group" role="group">
+                                                    <button class="btn btn-sm btn-outline-primary rounded-start"
+                                                            onclick="editRole('@role.Id')"
+                                                            data-bs-toggle="tooltip"
+                                                            title="Edit Role">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger rounded-end"
+                                                            onclick="confirmDelete('@role.Id', '@role.Name')"
+                                                            data-bs-toggle="tooltip"
+                                                            title="Delete Role">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <div class="mb-3">
+                                <i class="fas fa-users-slash fa-3x text-muted"></i>
+                            </div>
+                            <h6 class="text-muted">No roles found</h6>
+                            <p class="text-muted small mb-0">Start by creating your first role</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form for delete action -->
+<form id="deleteForm" asp-action="Delete" method="post" style="display: none;">
+    <input type="hidden" name="id" id="deleteId" />
+</form>
+
+@section Scripts {
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.all.min.js"></script>
+
+    <script>
+        // Initialize tooltips
+        document.addEventListener('DOMContentLoaded', function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+
+        // Edit role function with modern styling
+        function editRole(id) {
+            // Show loading
+            Swal.fire({
+                title: 'Loading...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            fetch('/Role/GetRole?id=' + id)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    Swal.close();
+
+                    // Populate form
+                    document.getElementById('roleId').value = data.id;
+                    document.getElementById('roleName').value = data.name;
+
+                    // Update form UI for editing
+                    document.getElementById('form-title').textContent = 'Edit Role';
+                    document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save me-2"></i>Update Role';
+                    document.getElementById('cancelBtn').style.display = 'block';
+
+                    // Focus on role name input
+                    document.getElementById('roleName').focus();
+
+                    // Show success message
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Edit Mode',
+                        text: 'Role loaded for editing',
+                        timer: 2000,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to load role data. Please try again.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                });
+        }
+
+        // Reset form function
+        function resetForm() {
+            document.getElementById('roleForm').reset();
+            document.getElementById('roleId').value = '';
+            document.getElementById('form-title').textContent = 'Add New Role';
+            document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save me-2"></i>Save Role';
+            document.getElementById('cancelBtn').style.display = 'none';
+
+            Swal.fire({
+                icon: 'info',
+                title: 'Form Reset',
+                text: 'Ready to add new role',
+                timer: 1500,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        }
+
+        // Confirm delete with SweetAlert
+        function confirmDelete(id, roleName) {
+            Swal.fire({
+                title: 'Are you sure?',
+                html: `You are about to delete the role: <strong>${roleName}</strong><br><small class="text-muted">This action cannot be undone.</small>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-trash me-2"></i>Yes, delete it!',
+                cancelButtonText: '<i class="fas fa-times me-2"></i>Cancel',
+                reverseButtons: true,
+                customClass: {
+                    popup: 'border-0 shadow-lg',
+                    confirmButton: 'btn btn-danger',
+                    cancelButton: 'btn btn-secondary'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Set the ID in the hidden form and submit
+                    document.getElementById('deleteId').value = id;
+                    document.getElementById('deleteForm').submit();
+
+                    // Show deleting message
+                    Swal.fire({
+                        title: 'Deleting...',
+                        text: 'Please wait while we delete the role.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                }
+            });
+        }
+
+        // Form submission with loading state
+        document.getElementById('roleForm').addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('saveBtn');
+            const originalText = submitBtn.innerHTML;
+
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+            submitBtn.disabled = true;
+
+            // Re-enable button after 3 seconds (fallback)
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 3000);
+        });
+
+        // Show success/error messages if they exist in TempData
+        @if (TempData["Success"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: '@TempData["Success"]',
+                    timer: 3000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+            </text>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: '@TempData["Error"]',
+                    confirmButtonColor: '#dc3545'
+                });
+            </text>
+        }
+    </script>
+}
+
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .card {
+        transition: all 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+    .btn {
+        transition: all 0.2s ease;
+    }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.05);
+    }
+
+    .input-group-text {
+        background-color: #f8f9fa;
+        border-right: none;
+    }
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+    .text-gray-800 {
+        color: #5a5c69 !important;
+    }
+
+    .text-gray-700 {
+        color: #6e707e !important;
+    }
+
+    .bg-primary.bg-opacity-10 {
+        background-color: rgba(13, 110, 253, 0.1) !important;
+    }
+</style>

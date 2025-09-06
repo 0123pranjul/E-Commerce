@@ -1,0 +1,60 @@
+﻿@model JobPortalManagement.Models.DTO.AssignUserRoleViewModel
+
+@{
+    ViewData["Title"] = "Assign Roles";
+}
+
+<h2>Assign Roles to Users</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<form asp-action="RoleAsignUser" method="post">
+    <div class="form-group mb-3">
+        <label>Select Role</label>
+        <select asp-for="SelectedRoleId" asp-items="Model.Roles" class="form-control" required>
+            <option value="">--Select Role--</option>
+        </select>
+    </div>
+
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="selectAll" /> Select All</th>
+                <th>Username</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model.Users)
+            {
+                <tr>
+                    <td>
+                        <input type="checkbox" name="SelectedUserIds" value="@user.Id" />
+                    </td>
+                    <td>@user.UserName</td>
+                    <td>@user.Email</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-success">Assign Role</button>
+</form>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#selectAll').click(function () {
+                $('input[name="SelectedUserIds"]').prop('checked', this.checked);
+            });
+        });
+    </script>
+}

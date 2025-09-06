@@ -1,0 +1,70 @@
+﻿@model JobPortalManagement.Models.DTO.FieldMasterListVM
+@{
+    ViewData["Title"] = "Manage Registration Fields";
+}
+<h4 class="mb-3">Manage Registration Fields</h4>
+
+@if (TempData["msg"] != null)
+{
+    <div class="alert alert-success">@TempData["msg"]</div>
+}
+
+<form asp-action="Save" method="post">
+    @Html.AntiForgeryToken()
+    <table class="table table-bordered align-middle">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Field Name</th>
+                <th>Label</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Visible</th>
+                <th>Order</th>
+                <th>Options (JSON/CSV)</th>
+                <th>CSS Class</th>   @* 🔹 New column *@
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Fields.Count; i++)
+            {
+                <tr>
+                    <td>
+                        @(i + 1)
+                        <input type="hidden" asp-for="Fields[i].FieldId" />
+                        <input type="hidden" asp-for="Fields[i].FieldName" />
+                    </td>
+                    <td>@Model.Fields[i].FieldName</td>
+                    <td><input class="form-control" asp-for="Fields[i].Label" /></td>
+                    <td>
+                        <select class="form-select" asp-for="Fields[i].FieldType">
+                            <option>text</option>
+                            <option>number</option>
+                            <option>email</option>
+                            <option>date</option>
+                            <option>dropdown</option>
+                            <option>textarea</option>
+                            <option>checkbox</option>
+                        </select>
+                    </td>
+                    <td class="text-center">
+                        <input class="form-check-input" asp-for="Fields[i].IsRequired" />
+                    </td>
+                    <td class="text-center">
+                        <input class="form-check-input" asp-for="Fields[i].IsVisible" />
+                    </td>
+                    <td style="width:110px">
+                        <input class="form-control" type="number" asp-for="Fields[i].OrderNo" />
+                    </td>
+                    <td>
+                        <input class="form-control" asp-for="Fields[i].OptionsJson" placeholder='["A","B"] or A,B' />
+                    </td>
+                    <td>
+                        <input class="form-control" asp-for="Fields[i].CssClass" placeholder="form-control custom-input" />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>

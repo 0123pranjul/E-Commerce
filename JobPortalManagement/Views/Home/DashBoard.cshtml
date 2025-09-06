@@ -1,0 +1,19 @@
+﻿
+
+@model JobPortalManagement.Models.DTO.UserDto
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+<h1>Wellcome To Dashboard</h1>
+
+<div class="container mt-4">
+    <h2>Welcome, @Model.Username!</h2>
+    <p><strong>Email:</strong> @Model.Email</p>
+    <p><strong>Full Name:</strong> @Model.Name</p>
+    <p><strong>Mobile:</strong> @Model.MobileNo</p>
+
+    <div class="alert alert-success mt-3">
+        ✅ Access Token & Refresh Token working properly!
+    </div>
+</div>
